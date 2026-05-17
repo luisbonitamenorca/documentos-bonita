@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Documentos · Bonita Menorca</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f5f3ee;
+    color: #2c2c2a;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* LOGIN */
+  .login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .login-box {
+    background: white;
+    border-radius: 12px;
+    padding: 40px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.05);
+  }
+  .login-box h1 { font-size: 24px; font-weight: 500; margin-bottom: 8px; }
+  .login-box p { color: #888780; font-size: 14px; margin-bottom: 24px; }
+  .login-box input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #D3D1C7;
+    border-radius: 8px;
+    font-size: 15px;
+    margin-bottom: 12px;
+    font-family: inherit;
+  }
+  .login-box input:focus { outline: 2px solid #534AB7; outline-offset: -1px; border-color: transparent; }
+  .login-box button {
+    width: 100%;
+    padding: 12px;
+    background: #534AB7;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .login-box button:hover { background: #3C3489; }
+  .login-error { color: #A32D2D; font-size: 13px; margin-top: 8px; }
+
+  /* MAIN */
+  .app { max-width: 1200px; margin: 0 auto; padding: 24px; }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e5e3dc;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  header h1 { font-size: 22px; font-weight: 500; }
+  .user-info { font-size: 13px; color: #5F5E5A; }
+  .user-info strong { color: #2c2c2a; }
+  .admin-badge {
+    background: #EEEDFE;
+    color: #3C3489;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    margin-left: 6px;
+  }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+  .btn {
+    padding: 8px 14px;
+    background: white;
+    border: 1px solid #D3D1C7;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+    color: #2c2c2a;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn:hover { background: #f5f3ee; }
+  .btn-primary { background: #534AB7; color: white; border-color: #534AB7; }
+  .btn-primary:hover { background: #3C3489; }
+  .btn-danger { color: #A32D2D; }
+  .btn-danger:hover { background: #FCEBEB; }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+  .btn-icon {
+    padding: 4px 8px;
+    font-size: 12px;
+    min-width: 32px;
+    justify-content: center;
+  }
+  .logout-link { font-size: 12px; color: #888780; cursor: pointer; text-decoration: underline; background: none; border: none; }
+
+  /* FILTERS */
+  .filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .filters input, .filters select {
+    padding: 8px 12px;
+    border: 1px solid #D3D1C7;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    background: white;
+  }
+  .filters input { flex: 1; min-width: 200px; }
+  .filters select { min-width: 160px; }
+
+  /* DEPARTMENT TABS (primary) */
+  .dept-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .dept-tab {
+    padding: 8px 16px;
+    background: white;
+    border: 1px solid #D3D1C7;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    color: #5F5E5A;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .dept-tab:hover { background: #f5f3ee; }
+  .dept-tab.active {
+    background: #534AB7;
+    color: white;
+    border-color: #534AB7;
+    font-weight: 500;
+  }
+
+  /* SUBCATEGORY TABS (secondary) */
+  .subcat-tabs {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    padding-top: 8px;
+  }
+  .subcat-tab {
+    padding: 5px 12px;
+    background: transparent;
+    border: 1px solid #e5e3dc;
+    border-radius: 16px;
+    font-size: 12px;
+    cursor: pointer;
+    color: #5F5E5A;
+    transition: all 0.15s;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .subcat-tab:hover { background: white; border-color: #D3D1C7; }
+  .subcat-tab.active {
+    background: #2c2c2a;
+    color: white;
+    border-color: #2c2c2a;
+  }
+  .subcat-tab .count {
+    font-size: 11px;
+    opacity: 0.7;
+  }
+  .subcat-tab.active .count { opacity: 0.85; }
+
+  /* DOCUMENTS */
+  .subcategory {
+    margin-bottom: 28px;
+  }
+  .subcategory-header {
+    font-size: 13px;
+    color: #5F5E5A;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+  .doc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+  .doc-card {
+    background: white;
+    border: 1px solid #e5e3dc;
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    transition: border-color 0.15s;
+  }
+  .doc-card:hover { border-color: #888780; }
+  .doc-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .doc-icon.pdf { background: #FCEBEB; color: #A32D2D; }
+  .doc-icon.doc { background: #E6F1FB; color: #185FA5; }
+  .doc-icon.xls { background: #EAF3DE; color: #3B6D11; }
+  .doc-icon.img { background: #FAEEDA; color: #854F0B; }
+  .doc-icon.ppt { background: #FAECE7; color: #993C1D; }
+  .doc-icon.other { background: #F1EFE8; color: #5F5E5A; }
+  .doc-body { flex: 1; min-width: 0; }
+  .doc-name {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 2px;
+    word-break: break-word;
+  }
+  .doc-meta {
+    font-size: 12px;
+    color: #888780;
+    margin-bottom: 8px;
+  }
+  .doc-centro {
+    display: inline-block;
+    background: #F1EFE8;
+    color: #5F5E5A;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+  .doc-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .empty-state {
+    padding: 60px 20px;
+    text-align: center;
+    color: #888780;
+  }
+  .empty-state h3 { font-weight: 500; margin-bottom: 6px; color: #5F5E5A; }
+  .empty-state p { font-size: 13px; }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+  }
+  .modal {
+    background: white;
+    border-radius: 12px;
+    padding: 28px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal.wide { max-width: 640px; }
+  .modal h2 { font-size: 18px; font-weight: 500; margin-bottom: 18px; }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 18px;
+  }
+  .modal-header h2 { margin-bottom: 0; }
+  .modal-close {
+    background: none; border: none; font-size: 22px;
+    color: #888780; cursor: pointer; line-height: 1;
+    padding: 0; margin-left: 16px;
+  }
+  .modal-close:hover { color: #2c2c2a; }
+  .form-group { margin-bottom: 14px; }
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    color: #5F5E5A;
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid #D3D1C7;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    background: white;
+  }
+  .form-group input[type="file"] { padding: 6px; }
+  .form-group textarea { resize: vertical; min-height: 60px; }
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e3dc;
+  }
+
+  /* MANAGE MODAL */
+  .manage-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid #e5e3dc;
+  }
+  .manage-tab {
+    padding: 8px 16px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-size: 14px;
+    cursor: pointer;
+    color: #5F5E5A;
+    font-family: inherit;
+    margin-bottom: -1px;
+  }
+  .manage-tab.active {
+    color: #534AB7;
+    border-bottom-color: #534AB7;
+    font-weight: 500;
+  }
+  .manage-list {
+    border: 1px solid #e5e3dc;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .manage-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid #e5e3dc;
+    background: white;
+  }
+  .manage-row:last-child { border-bottom: none; }
+  .manage-row input {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    background: transparent;
+  }
+  .manage-row input:hover { border-color: #e5e3dc; }
+  .manage-row input:focus { border-color: #534AB7; outline: none; background: white; }
+  .manage-row-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .manage-count {
+    font-size: 11px;
+    color: #888780;
+    padding: 2px 8px;
+    background: #F1EFE8;
+    border-radius: 10px;
+  }
+  .manage-add {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .manage-add input {
+    flex: 1;
+    padding: 9px 12px;
+    border: 1px solid #D3D1C7;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #2c2c2a;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 200;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .toast.error { background: #A32D2D; }
+  .toast.success { background: #0F6E56; }
+
+  .loading {
+    text-align: center;
+    padding: 40px;
+    color: #888780;
+  }
+
+  @media (max-width: 600px) {
+    .app { padding: 16px; }
+    .doc-grid { grid-template-columns: 1fr; }
+    header { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen" class="login-screen">
+  <div class="login-box">
+    <h1>Documentos Bonita</h1>
+    <p>Introduce la contraseña y tu nombre para acceder.</p>
+    <input type="password" id="login-password" placeholder="Contraseña" autocomplete="off">
+    <input type="text" id="login-name" placeholder="Tu nombre (ej: Marcos)" autocomplete="off">
+    <button onclick="handleLogin()">Entrar</button>
+    <div id="login-error" class="login-error" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="app" style="display:none;">
+  <header>
+    <div>
+      <h1>Documentos Bonita Menorca</h1>
+      <div class="user-info">
+        Hola, <strong id="user-display"></strong><span id="admin-badge" class="admin-badge" style="display:none;">admin</span>
+        · <span id="doc-count">0</span> documentos
+        · <button class="logout-link" onclick="handleLogout()">salir</button>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button id="manage-btn" class="btn" onclick="openManageModal()" style="display:none;">
+        ⚙ Gestionar
+      </button>
+      <button class="btn btn-primary" onclick="openUploadModal()">
+        ↑ Subir documento
+      </button>
+    </div>
+  </header>
+
+  <div class="filters">
+    <input type="text" id="search-input" placeholder="Buscar por nombre..." oninput="render()">
+    <select id="centro-filter" onchange="render()">
+      <option value="">Todos los centros</option>
+    </select>
+  </div>
+
+  <div class="dept-tabs" id="dept-tabs"></div>
+  <div class="subcat-tabs" id="subcat-tabs"></div>
+
+  <div id="content"></div>
+</div>
+
+<!-- UPLOAD MODAL -->
+<div id="upload-modal" class="modal-overlay" style="display:none;">
+  <div class="modal">
+    <h2>Subir documento</h2>
+    <div class="form-group">
+      <label>Archivo (máx. 250 MB)</label>
+      <input type="file" id="upload-file">
+    </div>
+    <div class="form-group">
+      <label>Nombre del documento</label>
+      <input type="text" id="upload-nombre" placeholder="Ej: Carta compromiso indefinido">
+    </div>
+    <div class="form-group">
+      <label>Descripción (opcional)</label>
+      <textarea id="upload-descripcion" placeholder="Notas o detalles adicionales..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>Categoría</label>
+      <select id="upload-departamento" onchange="updateSubcategoriasModal()"></select>
+    </div>
+    <div class="form-group">
+      <label>Subcategoría</label>
+      <select id="upload-subcategoria"></select>
+    </div>
+    <div class="form-group">
+      <label>Centro</label>
+      <select id="upload-centro">
+        <option value="">Todos los centros (transversal)</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeUploadModal()">Cancelar</button>
+      <button class="btn btn-primary" id="upload-submit" onclick="handleUpload()">Subir</button>
+    </div>
+  </div>
+</div>
+
+<!-- MOVE MODAL -->
+<div id="move-modal" class="modal-overlay" style="display:none;">
+  <div class="modal">
+    <h2>Mover documento</h2>
+    <p style="font-size:13px;color:#5F5E5A;margin-bottom:14px;" id="move-doc-name"></p>
+    <div class="form-group">
+      <label>Categoría</label>
+      <select id="move-departamento" onchange="updateMoveSubcategorias()"></select>
+    </div>
+    <div class="form-group">
+      <label>Subcategoría</label>
+      <select id="move-subcategoria"></select>
+    </div>
+    <div class="form-group">
+      <label>Centro</label>
+      <select id="move-centro">
+        <option value="">Todos los centros (transversal)</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeMoveModal()">Cancelar</button>
+      <button class="btn btn-primary" id="move-submit" onclick="handleMove()">Mover</button>
+    </div>
+  </div>
+</div>
+
+<!-- MANAGE MODAL -->
+<div id="manage-modal" class="modal-overlay" style="display:none;">
+  <div class="modal wide">
+    <div class="modal-header">
+      <h2>Gestionar estructura</h2>
+      <button class="modal-close" onclick="closeManageModal()">×</button>
+    </div>
+
+    <div class="manage-tabs">
+      <button class="manage-tab active" id="tab-categorias" onclick="switchManageTab('categorias')">Categorías</button>
+      <button class="manage-tab" id="tab-subcategorias" onclick="switchManageTab('subcategorias')">Subcategorías</button>
+    </div>
+
+    <!-- Categorías tab -->
+    <div id="manage-categorias">
+      <div class="manage-list" id="categorias-list"></div>
+      <div class="manage-add">
+        <input type="text" id="new-categoria" placeholder="Nombre de la nueva categoría..." onkeydown="if(event.key==='Enter')addCategoria()">
+        <button class="btn btn-primary" onclick="addCategoria()">Añadir</button>
+      </div>
+    </div>
+
+    <!-- Subcategorías tab -->
+    <div id="manage-subcategorias" style="display:none;">
+      <div class="form-group">
+        <label>Categoría</label>
+        <select id="subcat-categoria-selector" onchange="renderSubcategoriasManage()"></select>
+      </div>
+      <div class="manage-list" id="subcategorias-list"></div>
+      <div class="manage-add">
+        <input type="text" id="new-subcategoria" placeholder="Nombre de la nueva subcategoría..." onkeydown="if(event.key==='Enter')addSubcategoria()">
+        <button class="btn btn-primary" onclick="addSubcategoria()">Añadir</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// =====================================================
+// CONFIGURACIÓN
+// =====================================================
+const SUPABASE_URL = 'https://dyzoaztlekbrbeutaxqf.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5em9henRsZWticmJldXRheHFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMDk1NjIsImV4cCI6MjA5NDU4NTU2Mn0.7u9GY3XYb06BXCf3_tryT-hDBnbtcnPurFFgsnPCGN8';
+const APP_PASSWORD = 'bonita2026';
+const ADMINS = ['luis', 'nuria', 'patricia', 'silvia', 'sílvia'];
+const MAX_FILE_SIZE_MB = 250;
+
+// =====================================================
+// ESTADO
+// =====================================================
+let db = null;
+let state = {
+  user: null,
+  isAdmin: false,
+  departamentos: [],
+  subcategorias: [],
+  centros: [],
+  documentos: [],
+  activeDept: null,
+  activeSubcat: 'all',
+  movingDocId: null,
+  manageActiveTab: 'categorias',
+  manageSubcatCategoria: null,
+};
+
+// =====================================================
+// UTILIDADES
+// =====================================================
+const normalizar = (s) => s.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+const formatSize = (bytes) => {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+};
+
+const formatFecha = (iso) => {
+  const fecha = new Date(iso);
+  const ahora = new Date();
+  const diffMs = ahora - fecha;
+  const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDias === 0) return 'hoy';
+  if (diffDias === 1) return 'ayer';
+  if (diffDias < 7) return `hace ${diffDias} días`;
+  if (diffDias < 30) return `hace ${Math.floor(diffDias/7)} semanas`;
+  if (diffDias < 365) return `hace ${Math.floor(diffDias/30)} meses`;
+  return fecha.toLocaleDateString('es-ES');
+};
+
+const getIconType = (ext) => {
+  const e = (ext || '').toLowerCase();
+  if (['pdf'].includes(e)) return 'pdf';
+  if (['doc', 'docx', 'rtf', 'txt'].includes(e)) return 'doc';
+  if (['xls', 'xlsx', 'csv'].includes(e)) return 'xls';
+  if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'heic'].includes(e)) return 'img';
+  if (['ppt', 'pptx', 'key'].includes(e)) return 'ppt';
+  return 'other';
+};
+
+const getExt = (filename) => {
+  const parts = filename.split('.');
+  return parts.length > 1 ? parts.pop() : '';
+};
+
+const sanitizeFilename = (name) => {
+  return name.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9.-]/g, '_').toLowerCase();
+};
+
+const toast = (msg, tipo = '') => {
+  const el = document.createElement('div');
+  el.className = 'toast ' + tipo;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+};
+
+// =====================================================
+// LOGIN
+// =====================================================
+function handleLogin() {
+  const pwd = document.getElementById('login-password').value;
+  const name = document.getElementById('login-name').value.trim();
+  const errEl = document.getElementById('login-error');
+
+  if (!name) {
+    errEl.textContent = 'Introduce tu nombre.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (pwd !== APP_PASSWORD) {
+    errEl.textContent = 'Contraseña incorrecta.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  localStorage.setItem('bm_user', name);
+  state.user = name;
+  state.isAdmin = ADMINS.includes(normalizar(name));
+  startApp();
+}
+
+function handleLogout() {
+  localStorage.removeItem('bm_user');
+  location.reload();
+}
+
+// =====================================================
+// CARGA INICIAL
+// =====================================================
+async function startApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('user-display').textContent = state.user;
+  if (state.isAdmin) {
+    document.getElementById('admin-badge').style.display = 'inline-block';
+    document.getElementById('manage-btn').style.display = 'inline-flex';
+  }
+
+  db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  document.getElementById('content').innerHTML = '<div class="loading">Cargando documentos...</div>';
+
+  await loadAllData();
+}
+
+async function loadAllData() {
+  try {
+    const [deptRes, subRes, ctrRes, docRes] = await Promise.all([
+      db.from('departamentos').select('*').order('orden'),
+      db.from('subcategorias').select('*').order('orden'),
+      db.from('centros').select('*').order('orden'),
+      db.from('documentos').select('*').order('actualizado_en', { ascending: false }),
+    ]);
+
+    if (deptRes.error) throw deptRes.error;
+    state.departamentos = deptRes.data;
+    state.subcategorias = subRes.data;
+    state.centros = ctrRes.data;
+    state.documentos = docRes.data;
+
+    // Mantener categoría activa si sigue existiendo, si no la primera
+    if (!state.activeDept || !state.departamentos.find(d => d.id === state.activeDept)) {
+      state.activeDept = state.departamentos[0]?.id;
+      state.activeSubcat = 'all';
+    }
+
+    renderCentroFilter();
+    renderDeptTabs();
+    renderSubcatTabs();
+    populateUploadModalSelects();
+    render();
+  } catch (err) {
+    console.error(err);
+    toast('Error cargando datos: ' + err.message, 'error');
+  }
+}
+
+// =====================================================
+// RENDER
+// =====================================================
+function renderCentroFilter() {
+  const sel = document.getElementById('centro-filter');
+  const prevValue = sel.value;
+  sel.innerHTML = '<option value="">Todos los centros</option>';
+  state.centros.forEach(c => {
+    sel.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
+  });
+  sel.value = prevValue;
+}
+
+function renderDeptTabs() {
+  const tabs = document.getElementById('dept-tabs');
+  tabs.innerHTML = state.departamentos.map(d => `
+    <button class="dept-tab ${d.id === state.activeDept ? 'active' : ''}"
+            onclick="setActiveDept(${d.id})">
+      ${escapeHtml(d.nombre)}
+    </button>
+  `).join('');
+}
+
+function renderSubcatTabs() {
+  const tabs = document.getElementById('subcat-tabs');
+  const subcatsDelDept = state.subcategorias.filter(s => s.departamento_id === state.activeDept);
+  const centroFilter = document.getElementById('centro-filter')?.value || '';
+
+  const contarEnSubcat = (subcatId) => {
+    return state.documentos.filter(d => {
+      if (d.subcategoria_id !== subcatId) return false;
+      if (centroFilter) {
+        return String(d.centro_id) === centroFilter || d.centro_id === null;
+      }
+      return true;
+    }).length;
+  };
+
+  const totalDept = subcatsDelDept.reduce((acc, s) => acc + contarEnSubcat(s.id), 0);
+
+  let html = `<button class="subcat-tab ${state.activeSubcat === 'all' ? 'active' : ''}"
+                onclick="setActiveSubcat('all')">
+                Todas <span class="count">(${totalDept})</span>
+              </button>`;
+
+  subcatsDelDept.forEach(s => {
+    const n = contarEnSubcat(s.id);
+    html += `<button class="subcat-tab ${state.activeSubcat === s.id ? 'active' : ''}"
+              onclick="setActiveSubcat(${s.id})">
+              ${escapeHtml(s.nombre)} <span class="count">(${n})</span>
+            </button>`;
+  });
+
+  tabs.innerHTML = html;
+}
+
+function setActiveDept(id) {
+  state.activeDept = id;
+  state.activeSubcat = 'all';
+  renderDeptTabs();
+  renderSubcatTabs();
+  render();
+}
+
+function setActiveSubcat(id) {
+  state.activeSubcat = id;
+  renderSubcatTabs();
+  render();
+}
+
+function render() {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const centroFilter = document.getElementById('centro-filter').value;
+  const content = document.getElementById('content');
+
+  const subcatsDelDept = state.subcategorias.filter(s => s.departamento_id === state.activeDept);
+  const subcatIds = subcatsDelDept.map(s => s.id);
+  let docs = state.documentos.filter(d => subcatIds.includes(d.subcategoria_id));
+
+  if (state.activeSubcat !== 'all') {
+    docs = docs.filter(d => d.subcategoria_id === state.activeSubcat);
+  }
+
+  if (search) {
+    docs = docs.filter(d =>
+      d.nombre.toLowerCase().includes(search) ||
+      (d.descripcion || '').toLowerCase().includes(search)
+    );
+  }
+  if (centroFilter) {
+    docs = docs.filter(d => String(d.centro_id) === centroFilter || d.centro_id === null);
+  }
+
+  document.getElementById('doc-count').textContent = state.documentos.length;
+  renderSubcatTabs();
+
+  if (docs.length === 0) {
+    content.innerHTML = `
+      <div class="empty-state">
+        <h3>No hay documentos</h3>
+        <p>Aún no se ha subido nada en esta sección. Pulsa "Subir documento" para añadir el primero.</p>
+      </div>`;
+    return;
+  }
+
+  let html = '';
+
+  if (state.activeSubcat === 'all') {
+    subcatsDelDept.forEach(sub => {
+      const docsSub = docs.filter(d => d.subcategoria_id === sub.id);
+      if (docsSub.length === 0) return;
+
+      html += `<div class="subcategory">
+        <div class="subcategory-header">${escapeHtml(sub.nombre)}</div>
+        <div class="doc-grid">`;
+      html += docsSub.map(doc => renderDocCard(doc)).join('');
+      html += `</div></div>`;
+    });
+  } else {
+    html += `<div class="doc-grid">`;
+    html += docs.map(doc => renderDocCard(doc)).join('');
+    html += `</div>`;
+  }
+
+  content.innerHTML = html || `
+    <div class="empty-state">
+      <h3>No hay resultados</h3>
+      <p>Prueba a cambiar el filtro o la búsqueda.</p>
+    </div>`;
+}
+
+function renderDocCard(doc) {
+  const iconType = getIconType(doc.archivo_tipo);
+  const centro = state.centros.find(c => c.id === doc.centro_id);
+  const centroLabel = centro ? `<span class="doc-centro">${escapeHtml(centro.nombre)}</span>` : '';
+
+  let adminButtons = '';
+  if (state.isAdmin) {
+    adminButtons = `
+      <button class="btn btn-sm" onclick="openMoveModal('${doc.id}')">Mover</button>
+      <button class="btn btn-sm btn-danger" onclick="handleDelete('${doc.id}', '${doc.archivo_url}')">Eliminar</button>
+    `;
+  }
+
+  return `
+    <div class="doc-card">
+      <div class="doc-icon ${iconType}">${(doc.archivo_tipo || '?').toUpperCase().slice(0,4)}</div>
+      <div class="doc-body">
+        <div class="doc-name">${escapeHtml(doc.nombre)}</div>
+        ${centroLabel}
+        <div class="doc-meta">
+          ${formatSize(doc.archivo_tamano)} · ${formatFecha(doc.actualizado_en)} · ${escapeHtml(doc.subido_por)}
+        </div>
+        <div class="doc-actions">
+          <button class="btn btn-sm" onclick="handleDownload('${doc.archivo_url}', '${escapeAttr(doc.archivo_nombre)}')">↓ Descargar</button>
+          ${adminButtons}
+        </div>
+      </div>
+    </div>`;
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function escapeAttr(str) {
+  return (str || '').replace(/'/g, "\\'");
+}
+
+// =====================================================
+// UPLOAD
+// =====================================================
+function populateUploadModalSelects() {
+  const dept = document.getElementById('upload-departamento');
+  dept.innerHTML = state.departamentos.map(d =>
+    `<option value="${d.id}">${escapeHtml(d.nombre)}</option>`).join('');
+
+  const ctr = document.getElementById('upload-centro');
+  ctr.innerHTML = '<option value="">Todos los centros (transversal)</option>';
+  state.centros.forEach(c => {
+    ctr.innerHTML += `<option value="${c.id}">${escapeHtml(c.nombre)}</option>`;
+  });
+
+  updateSubcategoriasModal();
+}
+
+function updateSubcategoriasModal() {
+  const deptId = parseInt(document.getElementById('upload-departamento').value);
+  const sub = document.getElementById('upload-subcategoria');
+  const subs = state.subcategorias.filter(s => s.departamento_id === deptId);
+  sub.innerHTML = subs.map(s => `<option value="${s.id}">${escapeHtml(s.nombre)}</option>`).join('');
+}
+
+function openUploadModal() {
+  if (state.departamentos.length === 0) {
+    toast('Crea primero al menos una categoría', 'error');
+    return;
+  }
+  if (state.subcategorias.length === 0) {
+    toast('Crea primero al menos una subcategoría', 'error');
+    return;
+  }
+  populateUploadModalSelects();
+  document.getElementById('upload-modal').style.display = 'flex';
+  document.getElementById('upload-departamento').value = state.activeDept;
+  updateSubcategoriasModal();
+}
+
+function closeUploadModal() {
+  document.getElementById('upload-modal').style.display = 'none';
+  document.getElementById('upload-file').value = '';
+  document.getElementById('upload-nombre').value = '';
+  document.getElementById('upload-descripcion').value = '';
+}
+
+async function handleUpload() {
+  const fileInput = document.getElementById('upload-file');
+  const file = fileInput.files[0];
+  const nombre = document.getElementById('upload-nombre').value.trim();
+  const descripcion = document.getElementById('upload-descripcion').value.trim();
+  const subcategoria_id = parseInt(document.getElementById('upload-subcategoria').value);
+  const centroVal = document.getElementById('upload-centro').value;
+  const centro_id = centroVal ? parseInt(centroVal) : null;
+  const deptId = parseInt(document.getElementById('upload-departamento').value);
+
+  if (!file) { toast('Selecciona un archivo', 'error'); return; }
+  if (!nombre) { toast('Introduce un nombre', 'error'); return; }
+  if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) { toast(`Máximo ${MAX_FILE_SIZE_MB} MB`, 'error'); return; }
+
+  const btn = document.getElementById('upload-submit');
+  btn.disabled = true;
+  btn.textContent = 'Subiendo...';
+
+  try {
+    const dept = state.departamentos.find(d => d.id === deptId);
+    const deptSlug = normalizar(dept.nombre).replace(/\s+/g, '-');
+    const uuid = crypto.randomUUID();
+    const ext = getExt(file.name);
+    const path = `${deptSlug}/${uuid}-${sanitizeFilename(file.name)}`;
+
+    const { error: upErr } = await db.storage
+      .from('documentos')
+      .upload(path, file, { contentType: file.type });
+
+    if (upErr) throw upErr;
+
+    const { data: { publicUrl } } = db.storage
+      .from('documentos').getPublicUrl(path);
+
+    const { error: dbErr } = await db.from('documentos').insert({
+      nombre,
+      descripcion: descripcion || null,
+      subcategoria_id,
+      centro_id,
+      archivo_url: publicUrl,
+      archivo_nombre: file.name,
+      archivo_tipo: ext,
+      archivo_tamano: file.size,
+      subido_por: state.user,
+    });
+
+    if (dbErr) throw dbErr;
+
+    toast('Documento subido', 'success');
+    closeUploadModal();
+    await reloadDocs();
+  } catch (err) {
+    console.error(err);
+    toast('Error: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Subir';
+  }
+}
+
+async function reloadDocs() {
+  const { data } = await db.from('documentos')
+    .select('*').order('actualizado_en', { ascending: false });
+  state.documentos = data || [];
+  render();
+}
+
+// =====================================================
+// DOWNLOAD
+// =====================================================
+function handleDownload(url, filename) {
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.target = '_blank';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+// =====================================================
+// DELETE (admin only)
+// =====================================================
+async function handleDelete(docId, archivoUrl) {
+  if (!state.isAdmin) return;
+  if (!confirm('¿Eliminar este documento? Esta acción es irreversible.')) return;
+
+  try {
+    const urlParts = archivoUrl.split('/documentos/');
+    const path = urlParts[1];
+
+    if (path) {
+      await db.storage.from('documentos').remove([path]);
+    }
+    const { error } = await db.from('documentos').delete().eq('id', docId);
+    if (error) throw error;
+
+    toast('Documento eliminado', 'success');
+    await reloadDocs();
+  } catch (err) {
+    console.error(err);
+    toast('Error: ' + err.message, 'error');
+  }
+}
+
+// =====================================================
+// MOVE (admin only)
+// =====================================================
+function openMoveModal(docId) {
+  if (!state.isAdmin) return;
+  const doc = state.documentos.find(d => d.id === docId);
+  if (!doc) return;
+
+  state.movingDocId = docId;
+
+  // Encontrar la categoría actual del documento
+  const subActual = state.subcategorias.find(s => s.id === doc.subcategoria_id);
+  const deptActual = subActual ? subActual.departamento_id : state.departamentos[0]?.id;
+
+  document.getElementById('move-doc-name').textContent = doc.nombre;
+
+  // Poblar selectores
+  const dept = document.getElementById('move-departamento');
+  dept.innerHTML = state.departamentos.map(d =>
+    `<option value="${d.id}">${escapeHtml(d.nombre)}</option>`).join('');
+  dept.value = deptActual;
+
+  const ctr = document.getElementById('move-centro');
+  ctr.innerHTML = '<option value="">Todos los centros (transversal)</option>';
+  state.centros.forEach(c => {
+    ctr.innerHTML += `<option value="${c.id}">${escapeHtml(c.nombre)}</option>`;
+  });
+  ctr.value = doc.centro_id || '';
+
+  updateMoveSubcategorias();
+  document.getElementById('move-subcategoria').value = doc.subcategoria_id;
+
+  document.getElementById('move-modal').style.display = 'flex';
+}
+
+function updateMoveSubcategorias() {
+  const deptId = parseInt(document.getElementById('move-departamento').value);
+  const sub = document.getElementById('move-subcategoria');
+  const subs = state.subcategorias.filter(s => s.departamento_id === deptId);
+  sub.innerHTML = subs.map(s => `<option value="${s.id}">${escapeHtml(s.nombre)}</option>`).join('');
+}
+
+function closeMoveModal() {
+  document.getElementById('move-modal').style.display = 'none';
+  state.movingDocId = null;
+}
+
+async function handleMove() {
+  if (!state.movingDocId) return;
+  const subcategoria_id = parseInt(document.getElementById('move-subcategoria').value);
+  const centroVal = document.getElementById('move-centro').value;
+  const centro_id = centroVal ? parseInt(centroVal) : null;
+
+  const btn = document.getElementById('move-submit');
+  btn.disabled = true;
+  btn.textContent = 'Moviendo...';
+
+  try {
+    const { error } = await db.from('documentos')
+      .update({ subcategoria_id, centro_id, actualizado_en: new Date().toISOString() })
+      .eq('id', state.movingDocId);
+
+    if (error) throw error;
+
+    toast('Documento movido', 'success');
+    closeMoveModal();
+    await reloadDocs();
+  } catch (err) {
+    console.error(err);
+    toast('Error: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Mover';
+  }
+}
+
+// =====================================================
+// MANAGE: CATEGORÍAS Y SUBCATEGORÍAS (admin only)
+// =====================================================
+function openManageModal() {
+  if (!state.isAdmin) return;
+  state.manageActiveTab = 'categorias';
+  state.manageSubcatCategoria = state.departamentos[0]?.id;
+  document.getElementById('manage-modal').style.display = 'flex';
+  switchManageTab('categorias');
+}
+
+function closeManageModal() {
+  document.getElementById('manage-modal').style.display = 'none';
+}
+
+function switchManageTab(tab) {
+  state.manageActiveTab = tab;
+  document.getElementById('tab-categorias').classList.toggle('active', tab === 'categorias');
+  document.getElementById('tab-subcategorias').classList.toggle('active', tab === 'subcategorias');
+  document.getElementById('manage-categorias').style.display = tab === 'categorias' ? 'block' : 'none';
+  document.getElementById('manage-subcategorias').style.display = tab === 'subcategorias' ? 'block' : 'none';
+
+  if (tab === 'categorias') renderCategoriasManage();
+  else renderSubcategoriasManageWrapper();
+}
+
+function renderCategoriasManage() {
+  const list = document.getElementById('categorias-list');
+  if (state.departamentos.length === 0) {
+    list.innerHTML = '<div style="padding:20px;text-align:center;color:#888780;font-size:13px;">No hay categorías todavía. Añade la primera abajo.</div>';
+    return;
+  }
+
+  list.innerHTML = state.departamentos.map((d, idx) => {
+    const numDocs = state.documentos.filter(doc => {
+      const sub = state.subcategorias.find(s => s.id === doc.subcategoria_id);
+      return sub && sub.departamento_id === d.id;
+    }).length;
+    const numSubs = state.subcategorias.filter(s => s.departamento_id === d.id).length;
+
+    const upBtn = idx > 0
+      ? `<button class="btn btn-sm btn-icon" onclick="moveCategoriaUp(${d.id})" title="Subir">↑</button>`
+      : `<button class="btn btn-sm btn-icon" disabled style="opacity:0.3;">↑</button>`;
+    const downBtn = idx < state.departamentos.length - 1
+      ? `<button class="btn btn-sm btn-icon" onclick="moveCategoriaDown(${d.id})" title="Bajar">↓</button>`
+      : `<button class="btn btn-sm btn-icon" disabled style="opacity:0.3;">↓</button>`;
+
+    return `
+      <div class="manage-row">
+        <input type="text" value="${escapeHtml(d.nombre)}" data-id="${d.id}"
+               onblur="renameCategoria(${d.id}, this.value)"
+               onkeydown="if(event.key==='Enter')this.blur()">
+        <span class="manage-count" title="${numSubs} subcategorías, ${numDocs} documentos">${numSubs}s / ${numDocs}d</span>
+        <div class="manage-row-actions">
+          ${upBtn}
+          ${downBtn}
+          <button class="btn btn-sm btn-danger" onclick="deleteCategoria(${d.id})">×</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function addCategoria() {
+  const input = document.getElementById('new-categoria');
+  const nombre = input.value.trim();
+  if (!nombre) { toast('Introduce un nombre', 'error'); return; }
+
+  // Calcular siguiente orden y siguiente ID
+  const maxOrden = state.departamentos.reduce((m, d) => Math.max(m, d.orden), 0);
+
+  try {
+    const { error } = await db.from('departamentos').insert({
+      nombre,
+      icono: 'folder',
+      orden: maxOrden + 1
+    });
+    if (error) throw error;
+    input.value = '';
+    toast('Categoría añadida', 'success');
+    await loadAllData();
+    renderCategoriasManage();
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  }
+}
+
+async function renameCategoria(id, nuevoNombre) {
+  const nombre = nuevoNombre.trim();
+  const actual = state.departamentos.find(d => d.id === id);
+  if (!actual || actual.nombre === nombre) return;
+  if (!nombre) {
+    toast('El nombre no puede estar vacío', 'error');
+    renderCategoriasManage();
+    return;
+  }
+
+  try {
+    const { error } = await db.from('departamentos').update({ nombre }).eq('id', id);
+    if (error) throw error;
+    toast('Renombrada', 'success');
+    await loadAllData();
+    renderCategoriasManage();
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+    renderCategoriasManage();
+  }
+}
+
+async function deleteCategoria(id) {
+  const cat = state.departamentos.find(d => d.id === id);
+  if (!cat) return;
+
+  // Contar subcategorías y documentos
+  const subs = state.subcategorias.filter(s => s.departamento_id === id);
+  const numDocs = state.documentos.filter(doc => {
+    const sub = state.subcategorias.find(s => s.id === doc.subcategoria_id);
+    return sub && sub.departamento_id === id;
+  }).length;
+
+  if (numDocs > 0) {
+    alert(`No se puede eliminar "${cat.nombre}" porque tiene ${numDocs} documento(s). Muévelos a otra categoría primero.`);
+    return;
+  }
+  if (subs.length > 0) {
+    if (!confirm(`"${cat.nombre}" tiene ${subs.length} subcategoría(s) vacía(s) que también se eliminarán. ¿Continuar?`)) return;
+  } else {
+    if (!confirm(`¿Eliminar la categoría "${cat.nombre}"?`)) return;
+  }
+
+  try {
+    // Borrar subcategorías primero (por la FK)
+    if (subs.length > 0) {
+      const subIds = subs.map(s => s.id);
+      const { error: subErr } = await db.from('subcategorias').delete().in('id', subIds);
+      if (subErr) throw subErr;
+    }
+    const { error } = await db.from('departamentos').delete().eq('id', id);
+    if (error) throw error;
+
+    toast('Categoría eliminada', 'success');
+    if (state.activeDept === id) {
+      state.activeDept = null;
+    }
+    await loadAllData();
+    renderCategoriasManage();
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  }
+}
+
+async function moveCategoriaUp(id) {
+  const idx = state.departamentos.findIndex(d => d.id === id);
+  if (idx <= 0) return;
+  await swapOrdenCategorias(state.departamentos[idx], state.departamentos[idx - 1]);
+}
+async function moveCategoriaDown(id) {
+  const idx = state.departamentos.findIndex(d => d.id === id);
+  if (idx < 0 || idx >= state.departamentos.length - 1) return;
+  await swapOrdenCategorias(state.departamentos[idx], state.departamentos[idx + 1]);
+}
+async function swapOrdenCategorias(a, b) {
+  try {
+    // Truco: usar valores temporales para evitar conflictos de unique
+    const tempOrden = -Math.abs(a.orden) - 1000;
+    await db.from('departamentos').update({ orden: tempOrden }).eq('id', a.id);
+    await db.from('departamentos').update({ orden: a.orden }).eq('id', b.id);
+    await db.from('departamentos').update({ orden: b.orden }).eq('id', a.id);
+    await loadAllData();
+    renderCategoriasManage();
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  }
+}
+
+// SUBCATEGORÍAS
+function renderSubcategoriasManageWrapper() {
+  const sel = document.getElementById('subcat-categoria-selector');
+  sel.innerHTML = state.departamentos.map(d =>
+    `<option value="${d.id}">${escapeHtml(d.nombre)}</option>`).join('');
+
+  if (state.manageSubcatCategoria && state.departamentos.find(d => d.id === state.manageSubcatCategoria)) {
+    sel.value = state.manageSubcatCategoria;
+  } else {
+    state.manageSubcatCategoria = state.departamentos[0]?.id;
+  }
+
+  renderSubcategoriasManage();
+}
+
+function renderSubcategoriasManage() {
+  state.manageSubcatCategoria = parseInt(document.getElementById('subcat-categoria-selector').value);
+  const list = document.getElementById('subcategorias-list');
+  const subs = state.subcategorias.filter(s => s.departamento_id === state.manageSubcatCategoria);
+
+  if (subs.length === 0) {
+    list.innerHTML = '<div style="padding:20px;text-align:center;color:#888780;font-size:13px;">No hay subcategorías en esta categoría. Añade la primera abajo.</div>';
+    return;
+  }
+
+  list.innerHTML = subs.map((s, idx) => {
+    const numDocs = state.documentos.filter(d => d.subcategoria_id === s.id).length;
+
+    const upBtn = idx > 0
+      ? `<button class="btn btn-sm btn-icon" onclick="moveSubcatUp(${s.id})" title="Subir">↑</button>`
+      : `<button class="btn btn-sm btn-icon" disabled style="opacity:0.3;">↑</button>`;
+    const downBtn = idx < subs.length - 1
+      ? `<button class="btn btn-sm btn-icon" onclick="moveSubcatDown(${s.id})" title="Bajar">↓</button>`
+      : `<button class="btn btn-sm btn-icon" disabled style="opacity:0.3;">↓</button>`;
+
+    return `
+      <div class="manage-row">
+        <input type="text" value="${escapeHtml(s.nombre)}" data-id="${s.id}"
+               onblur="renameSubcat(${s.id}, this.value)"
+               onkeydown="if(event.key==='Enter')this.blur()">
+        <span class="manage-count">${numDocs}d</span>
+        <div class="manage-row-actions">
+          ${upBtn}
+          ${downBtn}
+          <button class="btn btn-sm btn-danger" onclick="deleteSubcat(${s.id})">×</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function addSubcategoria() {
+  const input = document.getElementById('new-subcategoria');
+  const nombre = input.value.trim();
+  if (!nombre) { toast('Introduce un nombre', 'error'); return; }
+
+  const deptId = parseInt(document.getElementById('subcat-categoria-selector').value);
+  const subsEnDept = state.subcategorias.filter(s => s.departamento_id === deptId);
+  const maxOrden = subsEnDept.reduce((m, s) => Math.max(m, s.orden), 0);
+
+  try {
+    const { error } = await db.from('subcategorias').insert({
+      departamento_id: deptId,
+      nombre,
+      orden: maxOrden + 1,
+    });
+    if (error) throw error;
+    input.value = '';
+    toast('Subcategoría añadida', 'success');
+    await loadAllData();
+    renderSubcategoriasManage();
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  }
+}
+
+async function renameSubcat(id, nuevoNombre) {
+  const nombre = nuevoNombre.trim();
+  const actual = state.subcategorias.find(s => s.id === id);
+  if (!actual || actual.nombre === nombre) return;
+  if (!nombre) {
+    toast('El nombre no puede estar vacío', 'error');
+    renderSubcategoriasManage();
+    return;
+  }
+
+  try {
+    const { error } = await db.from('subcategorias').update({ nombre }).eq('id', id);
+    if (error) throw error;
+    toast('Renombrada', 'success');
+    await loadAllData();
+    renderSubcategoriasManage();
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+    renderSubcategoriasManage();
+  }
+}
+
+async function deleteSubcat(id) {
+  const sub = state.subcategorias.find(s => s.id === id);
+  if (!sub) return;
+  const numDocs = state.documentos.filter(d => d.subcategoria_id === id).length;
+
+  if (numDocs > 0) {
+    alert(`No se puede eliminar "${sub.nombre}" porque tiene ${numDocs} documento(s). Muévelos a otra subcategoría primero.`);
+    return;
+  }
+  if (!confirm(`¿Eliminar la subcategoría "${sub.nombre}"?`)) return;
+
+  try {
+    const { error } = await db.from('subcategorias').delete().eq('id', id);
+    if (error) throw error;
+    toast('Subcategoría eliminada', 'success');
+    await loadAllData();
+    renderSubcategoriasManage();
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  }
+}
+
+async function moveSubcatUp(id) {
+  const sub = state.subcategorias.find(s => s.id === id);
+  if (!sub) return;
+  const hermanas = state.subcategorias.filter(s => s.departamento_id === sub.departamento_id);
+  const idx = hermanas.findIndex(s => s.id === id);
+  if (idx <= 0) return;
+  await swapOrdenSubcats(hermanas[idx], hermanas[idx - 1]);
+}
+async function moveSubcatDown(id) {
+  const sub = state.subcategorias.find(s => s.id === id);
+  if (!sub) return;
+  const hermanas = state.subcategorias.filter(s => s.departamento_id === sub.departamento_id);
+  const idx = hermanas.findIndex(s => s.id === id);
+  if (idx < 0 || idx >= hermanas.length - 1) return;
+  await swapOrdenSubcats(hermanas[idx], hermanas[idx + 1]);
+}
+async function swapOrdenSubcats(a, b) {
+  try {
+    const tempOrden = -Math.abs(a.orden) - 1000;
+    await db.from('subcategorias').update({ orden: tempOrden }).eq('id', a.id);
+    await db.from('subcategorias').update({ orden: a.orden }).eq('id', b.id);
+    await db.from('subcategorias').update({ orden: b.orden }).eq('id', a.id);
+    await loadAllData();
+    renderSubcategoriasManage();
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  }
+}
+
+// =====================================================
+// INIT
+// =====================================================
+window.addEventListener('DOMContentLoaded', () => {
+  const savedUser = localStorage.getItem('bm_user');
+  if (savedUser) {
+    state.user = savedUser;
+    state.isAdmin = ADMINS.includes(normalizar(savedUser));
+    startApp();
+  }
+
+  ['login-password', 'login-name'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleLogin();
+    });
+  });
+});
+</script>
+</body>
+</html>
